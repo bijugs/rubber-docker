@@ -135,16 +135,20 @@ def run(image_name, image_dir, container_dir, command):
     #       the children of a process (because we can't change the PID of a
     #       running process), so we'll have to unshare here OR replace
     #       os.fork() with linux.clone()
+    flags = linux.CLONE_NEWPID | linux.CLONE_NEWNS | linux.CLONE_NEWUTS
+    callback_args = (command, image_name, image_dir, container_id,
+                     container_dir)
+    pid = linux.clone(contain, flags, callback_args)
 
-    pid = os.fork()
-    if pid == 0:
+    #pid = os.fork()
+    #if pid == 0:
         # This is the child, we'll try to do some containment here
-        try:
-            contain(command, image_name, image_dir, container_id,
-                    container_dir)
-        except Exception:
-            traceback.print_exc()
-            os._exit(1)  # something went wrong in contain()
+    #    try:
+    #        contain(command, image_name, image_dir, container_id,
+    #                container_dir)
+    #    except Exception:
+    #        traceback.print_exc()
+    #        os._exit(1)  # something went wrong in contain()
 
     # This is the parent, pid contains the PID of the forked process
     # wait for the forked child, fetch the exit status

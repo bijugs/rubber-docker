@@ -160,7 +160,13 @@ def contain(command, image_name, image_dir, container_id, container_dir,
 
     # TODO: if user is set, drop privileges using os.setuid()
     #       (and optionally os.setgid()).
-
+    x = user.split(":")
+    uid=int(x[0])
+    print(uid)
+    gid=int(x[1])
+    print(gid)
+    os.setgid(gid)
+    os.setuid(uid)
     os.execvp(command[0], command)
 
 

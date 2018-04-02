@@ -40,6 +40,9 @@ def create_container_root(image_name, image_dir, container_id, container_dir):
     if not os.path.exists(container_root):
         os.makedirs(container_root)
 
+    # TODO: uncomment (why?)
+    linux.mount('tmpfs', container_root, 'tmpfs', 0, None)
+
     with tarfile.open(image_path) as t:
         # Fun fact: tar files may contain *nix devices! *facepalm*
         members = [m for m in t.getmembers()
@@ -97,12 +100,16 @@ def contain(command, image_name, image_dir, container_id, container_dir):
 
     makedev(os.path.join(new_root, 'dev'))
 
-    os.chroot(new_root)  # TODO: replace with pivot_root
+    # os.chroot(new_root)  # TODO: replace with pivot_root
+    old_root = os.path.join(new_root, 'old_root')
+    os.makedirs(old_root)
+    linux.pivot_root(new_root, old_root)
 
     os.chdir('/')
 
     # TODO: umount2 old root (HINT: see MNT_DETACH in man 2 umount)
-
+    linux.umount2('/old_root',linux.MNT_DETACH)
+    os.rmdir('/old_root')
     os.execvp(command[0], command)
 
 
